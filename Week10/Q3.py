@@ -58,7 +58,10 @@ def display_events(events):
 #   SELECT all rows from audit_log WHERE severity matches the parameter.
 #   Fetch all rows, close the connection, and return the list.
 def get_events_by_severity(severity):
-    pass
+    with sqlite3.connect(DB_NAME) as conn:
+        return conn.execute(
+            "SELECT * FROM audit_log WHERE severity =?", (severity,)
+        ).fetchall()
 
 
 # TODO: Complete get_recent_events(limit)
@@ -67,7 +70,10 @@ def get_events_by_severity(severity):
 #   Use the limit parameter for the LIMIT value.
 #   Fetch all rows, close the connection, and return the list.
 def get_recent_events(limit):
-    pass
+    with sqlite3.connect(DB_NAME) as conn:
+        return conn.execute(
+            "SELECT * FROM audit_log ORDER BY timestamp DESC LIMIT ?", (limit,)
+        ).fetchall()    
 
 
 # TODO: Complete count_by_severity()
@@ -76,7 +82,10 @@ def get_recent_events(limit):
 #            GROUP BY severity ORDER BY COUNT(*) DESC
 #   Fetch all rows, close the connection, and return the list.
 def count_by_severity():
-    pass
+    with sqlite3.connect(DB_NAME) as conn:
+        return conn.execute(
+            "SELECT severity, COUNT(*) FROM audit_log GROUP BY severity ORDER BY COUNT(*) DESC"
+        ).fetchall()    
 
 
 # TODO: Complete safe_query(query)
@@ -86,8 +95,17 @@ def count_by_severity():
 #   If sqlite3.Error occurs, print f"Database error: {e}" and return [].
 #   Always close the connection in a finally block.
 def safe_query(query):
-    pass
-
+    conn = sqlite3.connect(DB_NAME)
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        return rows
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return []
+    finally:
+        conn.close()
 
 # ============================================================
 #  UNIT TESTS — fill in the test methods
